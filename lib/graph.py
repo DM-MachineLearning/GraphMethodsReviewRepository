@@ -43,7 +43,7 @@ def distance_sklearn_metrics(z, k=4, metric='euclidean'):
 
 def distance_lshforest(z, k=4, metric='cosine'):
     """Return an approximation of the k-nearest cosine distances."""
-    assert metric is 'cosine'
+    assert metric == 'cosine'
     lshf = sklearn.neighbors.LSHForest()
     lshf.fit(z)
     dist, idx = lshf.kneighbors(z, n_neighbors=k+1)
@@ -81,6 +81,28 @@ def adjacency(dist, idx):
     assert np.abs(W - W.T).mean() < 1e-10
     assert type(W) is scipy.sparse.csr.csr_matrix
     return W
+
+
+def knn(features, k=10, metric='euclidean'):
+    """
+    Construct k-NN graph from feature matrix.
+    
+    Args:
+        features: Feature matrix (N_samples, N_features)
+        k: Number of nearest neighbors
+        metric: Distance metric ('euclidean', 'cosine', etc.)
+    
+    Returns:
+        W: Sparse adjacency matrix of k-NN graph
+    """
+    # Compute distances
+    if metric == 'cosine':
+        dist, idx = distance_lshforest(features, k=k, metric=metric)
+    else:
+        dist, idx = distance_sklearn_metrics(features, k=k, metric=metric)
+    
+    # Build adjacency matrix
+    return adjacency(dist, idx)
 
 
 def replace_random_edges(A, noise_level):
@@ -152,15 +174,15 @@ def fourier(L, algo='eigh', k=1):
         idx = lamb.argsort()
         return lamb[idx], U[:, idx]
 
-    if algo is 'eig':
+    if algo == 'eig':
         lamb, U = np.linalg.eig(L.toarray())
         lamb, U = sort(lamb, U)
-    elif algo is 'eigh':
+    elif algo == 'eigh':
         lamb, U = np.linalg.eigh(L.toarray())
-    elif algo is 'eigs':
+    elif algo == 'eigs':
         lamb, U = scipy.sparse.linalg.eigs(L, k=k, which='SM')
         lamb, U = sort(lamb, U)
-    elif algo is 'eigsh':
+    elif algo == 'eigsh':
         lamb, U = scipy.sparse.linalg.eigsh(L, k=k, which='SM')
 
     return lamb, U

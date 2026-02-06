@@ -46,7 +46,7 @@ class GCNDataLoader:
             Tuple of (adj, features, y_train, y_val, y_test, 
                      train_mask, val_mask, test_mask)
         """
-        from gcn.utils import load_data
+        from utils import load_data
         return load_data(dataset_name)
     
     def load_npz(self, filepath: str) -> Tuple:

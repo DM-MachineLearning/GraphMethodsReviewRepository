@@ -24,6 +24,12 @@ import numpy as np
 import tensorflow as tf
 from datetime import datetime
 
+# Enable TensorFlow 1.x behavior in TF 2.x if needed
+try:
+    tf.compat.v1.disable_eager_execution()
+except:
+    pass
+
 # Add current directory to path
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -139,6 +145,9 @@ class GCNExperiment:
         self.logger.info(f"  Train/val/test splits: {train_mask.sum()}/{val_mask.sum()}/{test_mask.sum()}")
         self.logger.info(f"  Number of classes: {y_train.shape[1]}")
         
+        # Store num features before preprocessing (features is sparse matrix)
+        num_features = features.shape[1]
+        
         # Preprocess features
         features = preprocess_features(features)
         self.logger.info(f"  Features preprocessed, type: {type(features)}")
@@ -169,28 +178,34 @@ class GCNExperiment:
         self.support = support
         self.num_supports = num_supports
         self.num_nodes = adj.shape[0]
-        self.num_features = features.shape[1]
+        self.num_features = num_features
         self.num_classes = y_train.shape[1]
         
         self.logger.info(f"✓ Data loaded successfully")
     
     def _build_model(self):
         """Build TensorFlow model."""
-        tf.reset_default_graph()
+        # Clear any existing graph
+        if hasattr(tf, 'reset_default_graph'):
+            tf.reset_default_graph()
+        else:
+            # TensorFlow 2.x
+            pass
         
         # Set random seed
         seed = self.config.training.seed
         np.random.seed(seed)
-        tf.set_random_seed(seed)
+        tf.random.set_seed(seed)
         
-        # Define placeholders
+        # Define placeholders - use compat.v1 for TF 2.x compatibility
+        tf_v1 = tf.compat.v1
         placeholders = {
-            'support': [tf.sparse_placeholder(tf.float32) for _ in range(self.num_supports)],
-            'features': tf.sparse_placeholder(tf.float32),
-            'labels': tf.placeholder(tf.float32, shape=(None, self.num_classes)),
-            'labels_mask': tf.placeholder(tf.int32),
-            'dropout': tf.placeholder_with_default(0., shape=()),
-            'num_features_nonzero': tf.placeholder(tf.int32),
+            'support': [tf_v1.sparse_placeholder(tf.float32) for _ in range(self.num_supports)],
+            'features': tf_v1.sparse_placeholder(tf.float32),
+            'labels': tf_v1.placeholder(tf.float32, shape=(None, self.num_classes)),
+            'labels_mask': tf_v1.placeholder(tf.int32),
+            'dropout': tf_v1.placeholder_with_default(0., shape=()),
+            'num_features_nonzero': tf_v1.placeholder(tf.int32),
         }
         
         self.logger.info(f"  Model type: {self.config.model.model_type}")
@@ -230,44 +245,52 @@ class GCNExperiment:
         self.placeholders = placeholders
         
         # Build optimization
-        with tf.name_scope('optimizer'):
+        with tf_v1.name_scope('optimizer'):
             # Masked loss
-            model.loss = tf.losses.softmax_cross_entropy(
-                self.placeholders['labels'],
-                model.outputs,
-                weights=tf.cast(self.placeholders['labels_mask'], tf.float32)
+            model.loss = tf.nn.softmax_cross_entropy_with_logits_v2(
+                labels=self.placeholders['labels'],
+                logits=model.outputs
+            )
+            model.loss = tf.reduce_mean(
+                model.loss * tf.cast(self.placeholders['labels_mask'], tf.float32)
             )
             
             # L2 regularization
-            for var in tf.trainable_variables():
+            for var in tf_v1.trainable_variables():
                 model.loss += self.config.model.weight_decay * tf.nn.l2_loss(var)
             
             # Optimizer
             if self.config.training.optimizer == 'adam':
-                optimizer = tf.train.AdamOptimizer(
+                optimizer = tf_v1.train.AdamOptimizer(
                     learning_rate=self.config.training.learning_rate
                 )
             else:  # sgd
-                optimizer = tf.train.GradientDescentOptimizer(
+                optimizer = tf_v1.train.GradientDescentOptimizer(
                     learning_rate=self.config.training.learning_rate
                 )
             
             self.train_op = optimizer.minimize(model.loss)
         
         # Accuracy
-        model.accuracy = tf.contrib.metrics.accuracy(
+        correct_pred = tf.equal(
             tf.argmax(self.placeholders['labels'], axis=1),
-            tf.argmax(model.outputs, axis=1),
-            weights=tf.cast(self.placeholders['labels_mask'], tf.float32)
+            tf.argmax(model.outputs, axis=1)
         )
+        model.accuracy = tf.reduce_mean(
+            tf.cast(correct_pred, tf.float32) * 
+            tf.cast(self.placeholders['labels_mask'], tf.float32)
+        ) / tf.maximum(tf.reduce_sum(
+            tf.cast(self.placeholders['labels_mask'], tf.float32)
+        ), 1.0)
         
         self.logger.info(f"✓ Model built successfully")
     
     def _train(self):
         """Train model with validation and early stopping."""
-        # Start session
-        self.session = tf.Session()
-        self.session.run(tf.global_variables_initializer())
+        # Start session - use compat.v1 for TF 2.x
+        tf_v1 = tf.compat.v1
+        self.session = tf_v1.Session()
+        self.session.run(tf_v1.global_variables_initializer())
         
         # Prepare feed dict function
         def construct_feed_dict(features, support, labels, labels_mask, dropout=0.):

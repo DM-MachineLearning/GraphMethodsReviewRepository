@@ -24,12 +24,12 @@ import numpy as np
 import tensorflow as tf
 from datetime import datetime
 
-# Add gcn package to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'gcn'))
+# Add current directory to path
+sys.path.insert(0, os.path.dirname(__file__))
 
 from config import get_cora_config, GCNConfig
-from gcn.utils import load_data, preprocess_features, preprocess_adj, chebyshev_polynomials
-from gcn.models import GCN, MLP
+from utils import load_data, preprocess_features, preprocess_adj, chebyshev_polynomials
+from models import GCN, MLP
 
 
 class GCNExperiment:

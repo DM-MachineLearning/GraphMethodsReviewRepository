@@ -27,7 +27,7 @@ class DataConfig:
     
     # Dataset
     dataset_name: str = 'cora'  # 'cora', 'citeseer', 'pubmed'
-    dataset_path: str = './gcn/data'
+    dataset_path: str = './data'
     
     # Data splits (for custom datasets)
     train_ratio: float = 0.6

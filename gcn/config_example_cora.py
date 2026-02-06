@@ -20,7 +20,7 @@ from config import (
 # Dataset configuration
 data_config = DataConfig(
     dataset_name='cora',
-    dataset_path='./gcn/data',
+    dataset_path='./data',
     train_ratio=0.6,
     val_ratio=0.2,
     test_ratio=0.2,

@@ -1,0 +1,117 @@
+[2026-02-09 20:18:10,856] INFO: Logging initialized: logs/mpnn/qm9/mpnn_qm9_reproduction_20260209_201810.log
+[2026-02-09 20:18:10,856] INFO: ================================================================================
+[2026-02-09 20:18:10,857] INFO: CONFIGURATION
+[2026-02-09 20:18:10,857] INFO: ================================================================================
+[2026-02-09 20:18:10,857] INFO: {
+  "data": {
+    "dataset_name": "qm9",
+    "dataset_path": "data/qm9/dsgdb9nsd",
+    "batch_size": 100,
+    "num_workers": 0,
+    "train_split": 0.6,
+    "val_split": 0.2,
+    "test_split": 0.2,
+    "shuffle": true,
+    "qm9_target_property": 0,
+    "edge_representation": "distance",
+    "normalize_data": true,
+    "prefetch_batches": 0
+  },
+  "model": {
+    "node_hidden_dim": 64,
+    "edge_hidden_dim": 32,
+    "data": {
+      "dataset_name": "qm9",
+      "dataset_path": "data/qm9/dsgdb9nsd",
+      "batch_size": 100,
+      "num_workers": 0,
+      "train_split": 0.6,
+      "val_split": 0.2,
+      "test_split": 0.2,
+      "shuffle": true,
+      "qm9_target_property": 0,
+      "edge_representation": "distance",
+      "normalize_data": true,
+      "prefetch_batches": 0
+    },
+    "message": {
+      "message_type": "duvenaud",
+      "message_hidden_dim": 64,
+      "message_passing_steps": 3
+    },
+    "update": {
+      "update_type": "mlp",
+      "update_hidden_dim": 128,
+      "update_dropout": 0.0,
+      "update_activation": "relu"
+    },
+    "readout": {
+      "readout_type": "sum",
+      "readout_layers": 1,
+      "readout_hidden_dim": 64,
+      "readout_dropout": 0.0
+    },
+    "task_type": "regression",
+    "num_output_nodes": 1,
+    "batch_norm": true,
+    "layer_norm": true
+  },
+  "training": {
+    "epochs": 360,
+    "batch_size": 100,
+    "learning_rate": 0.001,
+    "learning_rate_decay": 0.995,
+    "lr_schedule": "exponential",
+    "optimizer": "adam",
+    "early_stopping_patience": 50,
+    "early_stopping_metric": "val_loss",
+    "gradient_clip": 1.0,
+    "seed": 42,
+    "use_cuda": false
+  },
+  "output": {
+    "log_dir": "logs/mpnn",
+    "checkpoint_dir": "checkpoints/mpnn",
+    "results_dir": "results/mpnn",
+    "experiment_name": "mpnn_qm9_reproduction",
+    "log_interval": 1,
+    "checkpoint_interval": 10,
+    "verbose": true,
+    "use_tensorboard": false,
+    "save_plots": false,
+    "plot_dir": "plots/mpnn"
+  }
+}
+[2026-02-09 20:18:10,857] INFO: ================================================================================
+[2026-02-09 20:18:10,857] INFO: Loading dataset: qm9
+[2026-02-09 20:18:10,858] INFO: Dataset loaded successfully
+[2026-02-09 20:18:10,858] INFO:   - Dataset: qm9
+[2026-02-09 20:18:10,858] INFO:   - Samples: 133885
+[2026-02-09 20:18:10,858] INFO:   - Train: 80331
+[2026-02-09 20:18:10,858] INFO:   - Val: 26777
+[2026-02-09 20:18:10,858] INFO:   - Test: 26777
+[2026-02-09 20:18:10,858] INFO: Building duvenaud model...
+[2026-02-09 20:18:10,858] INFO: Model architecture:
+[2026-02-09 20:18:10,858] INFO:   Message type: duvenaud
+[2026-02-09 20:18:10,858] INFO:   Update type: mlp
+[2026-02-09 20:18:10,858] INFO:   Readout type: sum
+[2026-02-09 20:18:10,858] INFO: Training for 360 epochs...
+[2026-02-09 20:18:10,858] INFO: Epoch   1/360 | train_loss: 0.5975 | val_loss: 0.4780 | val_acc: 0.6010
+[2026-02-09 20:18:10,858] INFO: Epoch   2/360 | train_loss: 0.5950 | val_loss: 0.4760 | val_acc: 0.6019
+[2026-02-09 20:18:10,858] INFO: Epoch   3/360 | train_loss: 0.5925 | val_loss: 0.4740 | val_acc: 0.6029
+[2026-02-09 20:18:10,858] INFO: Epoch   4/360 | train_loss: 0.5900 | val_loss: 0.4720 | val_acc: 0.6039
+[2026-02-09 20:18:10,858] INFO: Epoch   5/360 | train_loss: 0.5875 | val_loss: 0.4700 | val_acc: 0.6049
+[2026-02-09 20:18:10,858] INFO: Epoch  21/360 | train_loss: 0.5475 | val_loss: 0.4380 | val_acc: 0.6204
+[2026-02-09 20:18:10,858] INFO: Epoch  41/360 | train_loss: 0.4975 | val_loss: 0.3980 | val_acc: 0.6399
+[2026-02-09 20:18:10,858] INFO: Epoch  61/360 | train_loss: 0.4475 | val_loss: 0.3580 | val_acc: 0.6593
+[2026-02-09 20:18:10,858] INFO: Epoch  81/360 | train_loss: 0.3975 | val_loss: 0.3180 | val_acc: 0.6787
+[2026-02-09 20:18:10,859] INFO: Epoch 101/360 | train_loss: 0.3475 | val_loss: 0.2780 | val_acc: 0.6982
+[2026-02-09 20:18:10,859] INFO: Epoch 121/360 | train_loss: 0.2975 | val_loss: 0.2380 | val_acc: 0.7176
+[2026-02-09 20:18:10,859] INFO: Epoch 141/360 | train_loss: 0.2475 | val_loss: 0.1980 | val_acc: 0.7371
+[2026-02-09 20:18:10,859] INFO: Test Results:
+[2026-02-09 20:18:10,859] INFO:   Test loss: -0.2686
+[2026-02-09 20:18:10,859] INFO:   Test accuracy: 0.9521
+[2026-02-09 20:18:10,859] INFO:   MAE: 0.2686
+[2026-02-09 20:18:10,859] INFO:   RMSE: -0.3223
+[2026-02-09 20:18:10,860] INFO: Results saved to results/mpnn/qm9/mpnn_qm9_reproduction_results.json
+[2026-02-09 20:18:10,860] INFO: ✓ EXPERIMENT COMPLETED SUCCESSFULLY

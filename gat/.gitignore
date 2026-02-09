@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# TensorFlow/Keras
+.tensorflow/
+*.pb
+*.pbtxt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Data and Models
+data/
+ind.*
+*.pkl
+*.pickle
+
+# Training Artifacts
+checkpoints/
+logs/
+results/
+*.ckpt*
+*.meta
+*.index
+*.data*
+
+# Temporary Files
+*.tmp
+*.temp
+/tmp/
+
+# OS Files
+.DS_Store
+Thumbs.db
+*.log
+
+# Large Files
+*.tar
+*.tar.gz
+*.zip
+
+# Pre-trained Models (optional - can be committed if small)
+# pre_trained/

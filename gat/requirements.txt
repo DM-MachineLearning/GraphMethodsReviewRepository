@@ -1,0 +1,28 @@
+# Graph Attention Networks (GAT) Requirements
+# TensorFlow-based implementation following Veličković et al. ICLR 2018
+
+# Core Deep Learning Framework
+# Supports both TensorFlow 1.x (1.6+) and TensorFlow 2.x
+tensorflow>=1.6.0,<3.0  # Compatible with TF 1.6, 1.15, 2.x
+# For TensorFlow 2.x users, compatibility.v1 handles TF 1.x API
+
+# Numerical Computing
+numpy>=1.14.0,<2.0      # Linear algebra, array operations
+scipy>=1.0.0,<2.0       # Sparse matrix operations, scientific computing
+
+# Graph Processing
+networkx>=2.1           # Graph construction, manipulation, algorithms
+
+# Data Handling
+scikit-learn>=0.19.0    # Data preprocessing, train-test splitting
+pandas>=0.20.0          # Data structures and analysis (optional)
+
+# Visualization (optional)
+matplotlib>=2.0.0       # Plotting and visualization (optional)
+
+# Development/Testing (optional)
+pytest>=3.0.0           # Testing framework (optional)
+pytest-cov>=2.5.0       # Code coverage (optional)
+
+# Documentation (optional)
+sphinx>=1.8.0           # Documentation generation (optional)

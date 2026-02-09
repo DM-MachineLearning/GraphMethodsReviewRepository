@@ -44,7 +44,7 @@ GraphMethodsReviewRepository/
 │   ├── lib/                     ← Core implementation
 │   └── [notebooks/examples/]
 │
-└── gcn/                         ← Graph Convolutional Networks (Kipf & Welling 2017)
+├── gcn/                         ← Graph Convolutional Networks (Kipf & Welling 2017)
 │   ├── README_REPRODUCIBLE.md   ← Full documentation & guide
 │   ├── QUICK_REFERENCE.md       ← Parameters and data paths
 │   ├── IMPLEMENTATION_COMPLETE.md ← Implementation status
@@ -60,22 +60,43 @@ GraphMethodsReviewRepository/
 │   │   └── data/                ← Datasets (Cora, Citeseer, Pubmed)
 │   └── [outputs/]               ← Results directory
 │
-└── mpnn/                        ← Neural Message Passing Networks (Gilmer et al. 2017)
+├── mpnn/                        ← Neural Message Passing Networks (Gilmer et al. 2017)
+│   ├── README_REPRODUCIBLE.md   ← Full documentation & guide
+│   ├── QUICK_REFERENCE.md       ← Parameters and data paths
+│   ├── config.py                ← Configuration system with message/update/readout functions
+│   ├── config_example_*.py      ← Example configurations (QM9, LETTER)
+│   ├── run_experiment.py        ← End-to-end training pipeline
+│   ├── data_loader.py           ← Unified data loader
+│   ├── models/
+│   │   ├── MPNN.py              ← Main MPNN implementations
+│   │   ├── MPNN_Duvenaud.py     ← Duvenaud message passing
+│   │   ├── MPNN_GGNN.py         ← Gated Graph Neural Network
+│   │   ├── MPNN_IntNet.py       ← Interaction Networks
+│   │   └── nnet.py              ← MLP utilities
+│   ├── data/                    ← Datasets (QM9, LETTER)
+│   ├── datasets/                ← Dataset handling
+│   └── [outputs/]               ← Results directory
+│
+└── gat/                         ← Graph Attention Networks (Veličković et al. 2018)
     ├── README_REPRODUCIBLE.md   ← Full documentation & guide
     ├── QUICK_REFERENCE.md       ← Parameters and data paths
-    ├── config.py                ← Configuration system with message/update/readout functions
-    ├── config_example_*.py      ← Example configurations (QM9, LETTER)
+    ├── config.py                ← Configuration system with DataConfig, ModelConfig, TrainingConfig
+    ├── config_example_cora.py   ← Example Cora configuration
     ├── run_experiment.py        ← End-to-end training pipeline
-    ├── data_loader.py           ← Unified data loader
+    ├── data_loader.py           ← Citation dataset loader
     ├── models/
-    │   ├── MPNN.py              ← Main MPNN implementations
-    │   ├── MPNN_Duvenaud.py     ← Duvenaud message passing
-    │   ├── MPNN_GGNN.py         ← Gated Graph Neural Network
-    │   ├── MPNN_IntNet.py       ← Interaction Networks
-    │   └── nnet.py              ← MLP utilities
-    ├── data/                    ← Datasets (QM9, LETTER)
-    ├── datasets/                ← Dataset handling
-    └── [outputs/]               ← Results directory
+    │   ├── __init__.py
+    │   ├── gat.py               ← GAT model implementation
+    │   ├── base_gattn.py        ← Base attention class
+    │   └── sp_gat.py            ← Sparse GAT variant
+    ├── utils/
+    │   ├── __init__.py
+    │   ├── layers.py            ← Multi-head attention layers
+    │   ├── process.py           ← Data preprocessing utilities
+    │   └── process_ppi.py       ← PPI-specific processing
+    ├── data/                    ← Datasets (Cora, CiteSeer, PubMed)
+    ├── datasets/                ← Additional dataset handling
+    └── [checkpoints/logs/results/] ← Training artifacts
 ```
 
 ---
@@ -223,11 +244,104 @@ config = get_letter_config()  # LETTER with GGNN
 
 ---
 
+### 4. **Graph Attention Networks**
+
+📄 **Paper:** Veličković, Cucurull, Casanova, Romero, Liò & Bengio, ICLR 2018  
+🔗 **Folder:** [`gat/`](gat/)  
+📚 **Documentation:** [`gat/README_REPRODUCIBLE.md`](gat/README_REPRODUCIBLE.md)  
+📋 **Quick Reference:** [`gat/QUICK_REFERENCE.md`](gat/QUICK_REFERENCE.md)
+
+**Key Innovation:** Multi-head attention mechanism for graphs - learns adaptive weights between nodes based on feature similarity instead of fixed graph structure.
+
+**Status:** ✅ Fully Implemented, Tested & Documented
+
+**Features:**
+- Multi-head attention layers with configurable heads and hidden units
+- Attention dropout and feed-forward dropout for regularization
+- Optional residual connections
+- Sparse tensor operations for large graphs (PubMed)
+- Dense and sparse model variants
+- Configuration-driven pipeline with validation
+- Support for 3 citation networks (Cora, CiteSeer, PubMed)
+- End-to-end training with early stopping and checkpointing
+
+**Datasets:**
+- **Cora:** 2,708 nodes, 1,433 features, 7 classes (semi-supervised node classification)
+- **CiteSeer:** 3,312 nodes, 3,703 features, 6 classes
+- **PubMed:** 19,717 nodes, 500 features, 3 classes (sparse mode recommended)
+
+**Expected Accuracy:**
+- Cora: 83.0 ± 0.7%
+- CiteSeer: 72.5 ± 0.7%
+- PubMed: 79.0 ± 0.3%
+
+**Attention Mechanism:**
+- Scaled dot-product attention with LeakyReLU activation
+- Multi-head attention: 8 heads in first layer, 1 in output layer
+- Learned masking via bias matrices
+- Residual connections (optional)
+
+**Quick Start:**
+```bash
+cd gat
+
+# Run with Cora dataset (default)
+python -c "
+import sys
+sys.path.insert(0, '.')
+from gat.run_experiment import GATExperiment
+from gat.config_example_cora import get_config
+exp = GATExperiment(get_config())
+results = exp.run()
+print(f'Test Accuracy: {results[\"test_accuracy\"]:.4f}')
+"
+
+# Run with CiteSeer
+python -c "
+from gat.config import GATConfig
+from gat.run_experiment import GATExperiment
+config = GATConfig(data__dataset_name='citeseer')
+exp = GATExperiment(config)
+results = exp.run()
+"
+```
+
+**Configuration Examples:**
+```python
+from gat.config import GATConfig, ModelConfig, TrainingConfig
+
+# Cora (balanced)
+config = GATConfig(
+    data__dataset_name="cora",
+    model__hid_units=[8],
+    model__n_heads=[8, 1],
+    training__learning_rate=0.005
+)
+
+# Custom - larger model for higher accuracy
+config = GATConfig(
+    model__hid_units=[16, 16],
+    model__n_heads=[8, 8, 1],
+    training__epochs=200000,
+    training__learning_rate=0.001
+)
+
+# Custom - smaller model for lower memory
+config = GATConfig(
+    model__hid_units=[4],
+    model__n_heads=[4, 1],
+    training__learning_rate=0.01
+)
+```
+
+---
+
 ### 3-Minute Setup
 
 ```bash
 # Option 1: CNN on Graphs
 cd cnn_graph
+
 python run_experiment.py
 
 # Option 2: Graph Convolutional Networks

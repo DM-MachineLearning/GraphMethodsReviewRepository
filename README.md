@@ -45,19 +45,36 @@ GraphMethodsReviewRepository/
 │   └── [notebooks/examples/]
 │
 └── gcn/                         ← Graph Convolutional Networks (Kipf & Welling 2017)
+│   ├── README_REPRODUCIBLE.md   ← Full documentation & guide
+│   ├── QUICK_REFERENCE.md       ← Parameters and data paths
+│   ├── IMPLEMENTATION_COMPLETE.md ← Implementation status
+│   ├── config.py                ← Configuration system
+│   ├── config_example_*.py      ← Example configurations
+│   ├── run_experiment.py        ← Training pipeline
+│   ├── data_loader.py           ← Data management
+│   ├── gcn/
+│   │   ├── train.py             ← Original Kipf implementation
+│   │   ├── models.py            ← GCN model classes
+│   │   ├── utils.py             ← Utility functions
+│   │   ├── layers.py            ← GCN layers
+│   │   └── data/                ← Datasets (Cora, Citeseer, Pubmed)
+│   └── [outputs/]               ← Results directory
+│
+└── mpnn/                        ← Neural Message Passing Networks (Gilmer et al. 2017)
     ├── README_REPRODUCIBLE.md   ← Full documentation & guide
     ├── QUICK_REFERENCE.md       ← Parameters and data paths
-    ├── IMPLEMENTATION_COMPLETE.md ← Implementation status
-    ├── config.py                ← Configuration system
-    ├── config_example_*.py      ← Example configurations
-    ├── run_experiment.py        ← Training pipeline
-    ├── data_loader.py           ← Data management
-    ├── gcn/
-    │   ├── train.py             ← Original Kipf implementation
-    │   ├── models.py            ← GCN model classes
-    │   ├── utils.py             ← Utility functions
-    │   ├── layers.py            ← GCN layers
-    │   └── data/                ← Datasets (Cora, Citeseer, Pubmed)
+    ├── config.py                ← Configuration system with message/update/readout functions
+    ├── config_example_*.py      ← Example configurations (QM9, LETTER)
+    ├── run_experiment.py        ← End-to-end training pipeline
+    ├── data_loader.py           ← Unified data loader
+    ├── models/
+    │   ├── MPNN.py              ← Main MPNN implementations
+    │   ├── MPNN_Duvenaud.py     ← Duvenaud message passing
+    │   ├── MPNN_GGNN.py         ← Gated Graph Neural Network
+    │   ├── MPNN_IntNet.py       ← Interaction Networks
+    │   └── nnet.py              ← MLP utilities
+    ├── data/                    ← Datasets (QM9, LETTER)
+    ├── datasets/                ← Dataset handling
     └── [outputs/]               ← Results directory
 ```
 
@@ -143,7 +160,68 @@ python -c "from config_example_citeseer import config; from run_experiment impor
 
 ---
 
-## Quick Start
+### 3. **Neural Message Passing for Quantum Chemistry**
+
+📄 **Paper:** Gilmer, Schoenholz, Riley, Vinyals & Dahl, ICLR 2017  
+🔗 **Folder:** [`mpnn/`](mpnn/)  
+📚 **Documentation:** [`mpnn/README_REPRODUCIBLE.md`](mpnn/README_REPRODUCIBLE.md)  
+📋 **Quick Reference:** [`mpnn/QUICK_REFERENCE.md`](mpnn/QUICK_REFERENCE.md)
+
+**Key Innovation:** Unified message passing neural network framework for learning on graphs. Combines three components: message function, update function, and readout function.
+
+**Status:** ✅ Fully Implemented, Tested & Documented
+
+**Features:**
+- Configuration-driven architecture with MessageFunctionConfig, UpdateFunctionConfig, ReadoutFunctionConfig
+- Multiple message passing variants: Duvenaud, GGNN (Gated Graph NN), Interaction Networks
+- Update functions: MLP, GRU, LSTM
+- Readout functions: Sum, Mean, Attention, MLP
+- Support for QM9 (molecular property prediction) and LETTER (graph classification)
+- End-to-end training with validation, early stopping, checkpointing
+- Comprehensive logging and results tracking
+
+**Datasets:**
+- **QM9:** 130,000+ organic molecules with 12 quantum chemistry properties
+- **LETTER:** Graph classification benchmark (15 letter classes)
+
+**Expected Results:**
+- **QM9 Dipole Moment:** MAE ~0.05 Debye
+- **LETTER Classification:** Accuracy ~95%
+
+**Message Passing Variants:**
+- Duvenaud: `φ(h_u, h_v, e_uv) = ReLU(W * [h_u, h_v, e_uv])`
+- GGNN: GRU-based updates with gating
+- InteractionNetwork: Separate functions for nodes and edges
+
+**Quick Start:**
+```bash
+cd mpnn
+
+# Run QM9 (molecular property prediction)
+python run_experiment.py --config config_example_qm9.py
+
+# Run LETTER (graph classification)
+python run_experiment.py --config config_example_letter.py
+
+# Custom parameters
+python run_experiment.py \
+  --dataset qm9 \
+  --message-type duvenaud \
+  --epochs 360 \
+  --batch-size 100 \
+  --learning-rate 1e-3
+```
+
+**Configuration Examples:**
+```python
+from config_example_qm9 import get_config
+config = get_config()  # QM9 with Duvenaud message passing
+
+from config_example_letter import get_config as get_letter_config  
+config = get_letter_config()  # LETTER with GGNN
+```
+
+---
 
 ### 3-Minute Setup
 
@@ -155,23 +233,19 @@ python run_experiment.py
 # Option 2: Graph Convolutional Networks
 cd gcn
 python run_experiment.py
-```bash
-# Option 1: CNN on Graphs
-cd cnn_graph
-python run_experiment.py
 
-# Option 2: Graph Convolutional Networks
-cd gcn
-python run_experiment.py
+# Option 3: Message Passing Neural Networks
+cd mpnn
+python run_experiment.py --config config_example_qm9.py
 ```
 
-Both implementations include:
+All implementations include:
 - Pre-configured datasets
 - Automatic results saving
 - Comprehensive logging
 - JSON output of all metrics
 
-**Results saved to:** `./outputs/logs/` and `./outputs/results/`
+**Results saved to:** `./logs/`, `./results/`, and `./checkpoints/`
 
 ---
 
@@ -203,7 +277,33 @@ exp.run()
 "
 ```
 
-### Custom Data
+### MPNN - QM9 Molecular Property Prediction
+
+```bash
+cd mpnn
+python run_experiment.py --config config_example_qm9.py
+```
+
+### MPNN - LETTER Graph Classification
+
+```bash
+cd mpnn
+python run_experiment.py --config config_example_letter.py --epochs 200 --batch-size 50
+```
+
+### MPNN - Custom Configuration
+
+```python
+# my_mpnn_config.py
+from config import get_custom_config
+config = get_custom_config(
+    dataset_name='qm9',
+    message_type='ggnn',
+    message_passing_steps=5,
+    learning_rate=5e-4,
+    epochs=200
+)
+```
 
 1. **For CNN on Graphs:**
    ```bash
@@ -225,7 +325,7 @@ exp.run()
 - Python 3.6+
 - pip or conda
 
-### Setup (Both Methods)
+### Setup (All Methods)
 
 ```bash
 # Clone repository
@@ -241,6 +341,11 @@ python run_experiment.py
 cd ../gcn
 pip install -r requirements.txt
 python run_experiment.py
+
+# Method 3: MPNN
+cd ../mpnn
+pip install -r requirements.txt
+python run_experiment.py --config config_example_qm9.py
 ```
 
 ---

@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
-from utils import layers
-from models.base_gattn import BaseGAttN
+from ..utils import layers
+from .base_gattn import BaseGAttN
 
 class SpGAT(BaseGAttN):
     def inference(inputs, nb_classes, nb_nodes, training, attn_drop, ffd_drop,
